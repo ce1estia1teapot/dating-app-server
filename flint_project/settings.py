@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'users',
     'matching',
     'chat',
+    'profiles'
 ]
 
 MIDDLEWARE = [
