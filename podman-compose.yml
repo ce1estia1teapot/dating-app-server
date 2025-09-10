@@ -1,0 +1,74 @@
+# This file defines the multi-container application stack for your "Flint" dating app.
+# It uses Podman Compose to build, link, and run the services together.
+
+services:
+  # The 'web' service represents the Python/Django backend.
+  web:
+    # Build the image using the Dockerfile located in the current directory.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Mount the backend source code as a volume for live-reloading during development.
+    # This maps the local 'backend' directory into the container's working directory.
+    volumes:
+      - ./backend:/usr/src/app/backend
+    
+    # Expose the backend's port to the host machine.
+    # The left side (8000) is the host port; the right side (8000) is the container port.
+    ports:
+      - "8000:8000"
+    
+    # Define environment variables for the database connection.
+    environment:
+      - DB_HOST=db
+      - DB_NAME=flintdb
+      - DB_USER=flintuser
+      - DB_PASSWORD=your_password_here
+    
+    # Ensure the database service starts before the web service.
+    depends_on:
+      - db
+
+  # The 'frontend' service represents the React frontend.
+  frontend:
+    # Use the official Node.js image for building and running the frontend.
+    image: node:18-alpine
+    
+    # Mount the frontend source code for hot-reloading.
+    volumes:
+      - ./frontend:/usr/src/app
+    
+    # Set the working directory inside the container.
+    working_dir: /usr/src/app
+    
+    # The command to install dependencies and start the development server.
+    command: npm start
+    
+    # Expose the frontend's development server port.
+    ports:
+      - "3000:3000"
+    
+    # Ensure the backend service is running before the frontend.
+    depends_on:
+      - web
+
+  # The 'db' service for the PostgreSQL database.
+  db:
+    # Use the official PostgreSQL image.
+    image: postgres:15-alpine
+    
+    # Store the database data in a named volume to ensure persistence.
+    # The data will not be lost if the container is stopped or removed.
+    volumes:
+      - flint_db_data:/var/lib/postgresql/data1
+    
+    # Set environment variables for the database. These must match what's in the 'web' service.
+    environment:
+      - POSTGRES_DB=flintdb
+      - POSTGRES_USER=flintuser
+      - POSTGRES_PASSWORD=admin
+      
+# This section defines the named volume for the database.
+volumes:
+  flint_db_data:
