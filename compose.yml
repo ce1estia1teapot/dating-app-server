@@ -8,11 +8,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    
+    # image: localhost/dating-server:1
+
     # Mount the backend source code as a volume for live-reloading during development.
     # This maps the local 'backend' directory into the container's working directory.
     volumes:
-      - ./backend:/usr/src/app/backend
+      - ./:/usr/src/app/backend
     
     # Expose the backend's port to the host machine.
     # The left side (8000) is the host port; the right side (8000) is the container port.
@@ -23,35 +24,14 @@ services:
     environment:
       - DB_HOST=db
       - DB_NAME=flintdb
-      - DB_USER=flintuser
-      - DB_PASSWORD=your_password_here
+      - DB_USER=admin
+      - DB_PASSWORD=admin_pass
+    networks:
+      - default
     
     # Ensure the database service starts before the web service.
     depends_on:
       - db
-
-  # The 'frontend' service represents the React frontend.
-  frontend:
-    # Use the official Node.js image for building and running the frontend.
-    image: node:18-alpine
-    
-    # Mount the frontend source code for hot-reloading.
-    volumes:
-      - ./frontend:/usr/src/app
-    
-    # Set the working directory inside the container.
-    working_dir: /usr/src/app
-    
-    # The command to install dependencies and start the development server.
-    command: npm start
-    
-    # Expose the frontend's development server port.
-    ports:
-      - "3000:3000"
-    
-    # Ensure the backend service is running before the frontend.
-    depends_on:
-      - web
 
   # The 'db' service for the PostgreSQL database.
   db:
@@ -62,13 +42,21 @@ services:
     # The data will not be lost if the container is stopped or removed.
     volumes:
       - flint_db_data:/var/lib/postgresql/data1
-    
+    ports:
+      - "5432:5432"    
     # Set environment variables for the database. These must match what's in the 'web' service.
     environment:
       - POSTGRES_DB=flintdb
-      - POSTGRES_USER=flintuser
-      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin_pass
+    networks:
+      - default
       
 # This section defines the named volume for the database.
 volumes:
   flint_db_data:
+
+# Defining inter-container network
+networks:
+  default:
+    driver: bridge

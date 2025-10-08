@@ -6,6 +6,8 @@ class User(AbstractUser):
     A custom user model to allow for future expansion.
     """
     email = models.EmailField(unique=True)
+    related_name='user_groups'
+    related_name='user_permissions_set'
 
     # Required for Django's authentication system
     USERNAME_FIELD = 'email'
